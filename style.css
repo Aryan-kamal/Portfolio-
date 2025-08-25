@@ -694,6 +694,16 @@ h6 {
 	font-size: 0.9rem;
 }
 
+/* Dark mode skills hover - remove background change to prevent invisibility */
+[data-theme="dark"] .skill-item:hover {
+	background: var(--bg-white);
+	color: var(--text-dark);
+}
+
+[data-theme="dark"] .skill-item:hover i {
+	color: inherit !important;
+}
+
 /* Experience Section */
 .timeline {
 	position: relative;
@@ -873,6 +883,19 @@ h6 {
 	border-radius: 15px;
 	font-size: 0.8rem;
 	font-weight: 500;
+	transition: var(--transition);
+}
+
+/* Dark mode project tags - better contrast and styling */
+[data-theme="dark"] .tag {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	color: var(--text-light);
+	box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+[data-theme="dark"] .tag:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
 .project-description {
@@ -1229,6 +1252,12 @@ h6 {
 	padding: 2rem 0;
 }
 
+/* Dark mode footer */
+[data-theme="dark"] .footer {
+	background: var(--footer-bg);
+	color: var(--text-dark);
+}
+
 /* Scroll to Top */
 .scroll-to-top {
 	position: fixed;
@@ -1435,6 +1464,7 @@ h6 {
 	--bg-light: #0f0f23;
 	--bg-white: #1a1a2e;
 	--bg-dark: #0a0a1a;
+	--footer-bg: #0a0a1a;
 }
 
 /* Smooth transitions for theme switching */

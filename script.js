@@ -315,14 +315,17 @@ function setupProjectHover() {
 
 // Contact form handling
 function setupContactForm() {
-	const contactForm = document.getElementById("contact-form");
+	console.log("Setting up contact form...");
+	const form = document.getElementById("contact-form");
+	console.log("Form element found:", form);
 
-	if (contactForm) {
-		contactForm.addEventListener("submit", (e) => {
-			e.preventDefault();
+	if (form) {
+		form.addEventListener("submit", async function (event) {
+			console.log("Form submitted, preventing default...");
+			event.preventDefault(); // This prevents page reload
 
 			// Get form data
-			const formData = new FormData(contactForm);
+			const formData = new FormData(form);
 			const name = formData.get("name");
 			const email = formData.get("email");
 			const message = formData.get("message");
@@ -338,9 +341,48 @@ function setupContactForm() {
 				return;
 			}
 
-			// Simulate form submission
-			showNotification("Message sent successfully!", "success");
-			contactForm.reset();
+			const submitBtn = form.querySelector('button[type="submit"]');
+			let originalText = submitBtn.innerHTML;
+
+			try {
+				// Show loading state
+				submitBtn.innerHTML =
+					'<i class="fas fa-spinner fa-spin"></i> Sending...';
+				submitBtn.disabled = true;
+
+				const response = await fetch("https://formspree.io/f/xyzdyywn", {
+					method: "POST",
+					body: formData,
+					headers: {
+						Accept: "application/json",
+					},
+				});
+
+				if (response.ok) {
+					showNotification("Message sent successfully!", "success");
+					form.reset();
+				} else {
+					const errorData = await response.json().catch(() => ({}));
+					if (errorData.error) {
+						showNotification(`Error: ${errorData.error}`, "error");
+					} else {
+						showNotification(
+							"Oops! Something went wrong. Please try again.",
+							"error"
+						);
+					}
+				}
+			} catch (error) {
+				console.error("Form submission error:", error);
+				showNotification(
+					"Network error. Please check your connection and try again.",
+					"error"
+				);
+			} finally {
+				// Reset button state
+				submitBtn.innerHTML = originalText;
+				submitBtn.disabled = false;
+			}
 		});
 	}
 }
@@ -355,34 +397,70 @@ function isValidEmail(email) {
 function showNotification(message, type = "info") {
 	const notification = document.createElement("div");
 	notification.className = `notification ${type}`;
-	notification.textContent = message;
+
+	// Create notification content with icon
+	const icon = type === "success" ? "✓" : type === "error" ? "✕" : "ℹ";
+	notification.innerHTML = `
+		<div class="notification-content">
+			<span class="notification-icon">${icon}</span>
+			<span class="notification-message">${message}</span>
+		</div>
+	`;
+
 	notification.style.cssText = `
         position: fixed;
         top: 20px;
         right: 20px;
-        padding: 15px 20px;
+        padding: 16px 20px;
         background: ${
 					type === "success"
-						? "#10B981"
+						? "linear-gradient(135deg, #10B981 0%, #059669 100%)"
 						: type === "error"
-						? "#EF4444"
-						: "#3B82F6"
+						? "linear-gradient(135deg, #EF4444 0%, #DC2626 100%)"
+						: "linear-gradient(135deg, #3B82F6 0%, #2563EB 100%)"
 				};
         color: white;
-        border-radius: 8px;
+        border-radius: 12px;
         z-index: 1000;
         animation: slideIn 0.3s ease;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        min-width: 300px;
+        font-family: 'Poppins', sans-serif;
     `;
 
 	document.body.appendChild(notification);
 
-	// Add slide animation
+	// Add slide animation and notification styles
 	const style = document.createElement("style");
 	style.textContent = `
         @keyframes slideIn {
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .notification-icon {
+            font-size: 18px;
+            font-weight: bold;
+            min-width: 20px;
+        }
+        
+        .notification-message {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
         }
     `;
 	document.head.appendChild(style);
